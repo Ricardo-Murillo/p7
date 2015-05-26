@@ -1,5 +1,6 @@
 import json
 import re
+import sys
     
 def initialize(width):
     world = []
@@ -50,36 +51,37 @@ def buildWorld(state):
   for call in state["Call"]:
     for witness in call["Witnesses"]:
         for rule in witness["Value"]:
+            #print rule
             arg = re.match(r'(\w*)\((.*)?\)$',rule)
             #print arg.group(1), arg.group(2)
-            type, req = arg.group(1), arg.group(2)
-            if type == 'param':
-              #param = re.match(r'^\(\\\"(.*)\\\",(\d*)\)$',req)
-              param = re.match(r'\"(.*)\",(\d*)',req)
-              world = initialize(int(param.group(2)))
-            if type == 'tile':
-              x,y = strToPair(req)
-              world[y][x] = '.'
-            if type == 'sprite':
-              param = re.match(r'(.*),(.*)',req)
-              x,y = strToPair(param.group(1))
-              world[y][x] = sprite[param.group(2)]
-            if type == 'touch':
-              param = re.match(r'(.*),(.*)',req)
-              x,y = strToPair(param.group(1))
-              layer = param.group(2)
-              while len(paths) <= int(layer):
-                paths.append({})
-              paths[int(layer)][(x,y)] = layer
+            if arg is not None:
+              type, req = arg.group(1), arg.group(2)
+              if type == 'param':
+                #param = re.match(r'^\(\\\"(.*)\\\",(\d*)\)$',req)
+                param = re.match(r'\"(.*)\",(\d*)',req)
+                world = initialize(int(param.group(2)))
+              if type == 'tile':
+                x,y = strToPair(req)
+                world[y][x] = '.'
+              if type == 'sprite':
+                param = re.match(r'(.*),(.*)',req)
+                x,y = strToPair(param.group(1))
+                world[y][x] = sprite[param.group(2)]
+              if type == 'touch':
+                param = re.match(r'(.*),(.*)',req)
+                x,y = strToPair(param.group(1))
+                layer = param.group(2)
+                while len(paths) <= int(layer):
+                  paths.append({})
+                paths[int(layer)][(x,y)] = layer
   return world,paths
 
 def loadAndBuild(out):
   result = json.loads(out)
-  #print result
   world, paths = buildWorld(result)
-  #print paths
-  #printWorld(world, {})
   printAllWorlds(world,paths)
-#for path in paths:
-#  print
-#  printWorld(world,path)
+
+#with open(sys.argv[1]) as f:
+#    example = json.load(f)
+#world,paths = buildWorld(example)
+#printAllWorlds(world,paths)
